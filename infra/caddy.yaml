@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: caddy-config
+data:
+  Caddyfile: |
+    :80 {
+      # Proxy all app traffic
+      route /u/u1/p/p1/* {
+          rewrite * {http.request.uri.path.replace_prefix("/u/u1/p/p1", "")}
+          reverse_proxy http://sandbox-svc-u1-p1.default.svc.cluster.local:3001 {
+              header_up Host {http.reverse_proxy.upstream.hostport}
+          }
+      }
+
+      # Proxy all Next.js internal assets (dev mode)
+      handle_path /_next/* {
+          reverse_proxy http://sandbox-svc-u1-p1.default.svc.cluster.local:3001 {
+              header_up Host {http.reverse_proxy.upstream.hostport}
+          }
+      }
+
+      # Proxy HMR (Hot Reload)
+      handle_path /_next/webpack-hmr {
+          reverse_proxy http://sandbox-svc-u1-p1.default.svc.cluster.local:3001
+      }
+
+      respond "Caddy default route" 200
+    }
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: caddy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: caddy
+  template:
+    metadata:
+      labels:
+        app: caddy
+    spec:
+      containers:
+        - name: caddy
+          image: caddy:latest
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: caddy-config
+              mountPath: /etc/caddy/Caddyfile
+              subPath: Caddyfile
+          securityContext:
+            runAsUser: 1000
+            runAsGroup: 1000
+            readOnlyRootFilesystem: true
+      volumes:
+        - name: caddy-config
+          configMap:
+            name: caddy-config
+            items:
+              - key: Caddyfile
+                path: Caddyfile
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: caddy
+spec:
+  selector:
+    app: caddy
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP  # Explicit type for clarity

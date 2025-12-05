@@ -28,7 +28,8 @@ export function createDeploymentTemplate(envId: string) {
               image: "sandbox-runtime:latest", // local image
               imagePullPolicy: "Never",       // don't pull from registry
               ports: [
-                { containerPort: 3000 }        // agent server
+                { containerPort: 3000 } ,       // agent server
+                { containerPort : 3001 }      //next.js server
               ],
             },
           ],

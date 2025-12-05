@@ -9,53 +9,73 @@ app.use(bodyParser.json());
 
 const ROOT = "/sandbox";
 
-// Ensure sandbox folder exists
-if (!fs.existsSync(ROOT)) fs.mkdirSync(ROOT, { recursive: true });
+// Ensure sandbox exists
+if (!fs.existsSync(ROOT)) {
+  fs.mkdirSync(ROOT, { recursive: true });
+}
 
-//update files
-
+/**
+ * Create/update a file in /sandbox
+ */
 app.post("/files", (req, res) => {
   const { filePath, content } = req.body;
 
-  if (!filePath) return res.status(400).json({ error: "filePath required" });
+  if (!filePath) {
+    return res.status(400).json({ error: "filePath is required" });
+  }
 
   const absPath = path.join(ROOT, filePath);
   fs.mkdirSync(path.dirname(absPath), { recursive: true });
-  fs.writeFileSync(absPath, content);
+  fs.writeFileSync(absPath, content ?? "", "utf8");
 
   res.json({ ok: true, filePath });
 });
 
-// Execute terminal commands
-
-
-
+/**
+ * Optional: run shell commands in /sandbox
+ */
 app.post("/exec", (req, res) => {
   const { command } = req.body;
-  if (!command) return res.status(400).json({ error: "command required" });
+  if (!command) {
+    return res.status(400).json({ error: "command is required" });
+  }
 
   exec(command, { cwd: ROOT }, (err, stdout, stderr) => {
     res.json({
       stdout: stdout?.toString(),
       stderr: stderr?.toString(),
-      error: err?.message || null
+      error: err?.message || null,
     });
   });
 });
 
-
-// Start Next.js dev server or run project
-
-
-
+/**
+ * Start Next.js dev server in /sandbox on port 3001
+ */
 app.post("/run", (req, res) => {
-  exec("npm install && npm run dev", { cwd: ROOT }, (err, stdout, stderr) => {
-    res.json({
-      stdout,
-      stderr,
-      error: err?.message || null
-    });
+  const cmd = 'sh -lc "npm install && PORT=3001 next dev"';
+
+  const child = exec(cmd, { cwd: ROOT });
+
+  child.stdout.on("data", (data) => {
+    console.log("[RUN-STDOUT]", data.toString());
+  });
+
+  child.stderr.on("data", (data) => {
+    console.error("[RUN-STDERR]", data.toString());
+  });
+
+  child.on("exit", (code) => {
+    console.log("[RUN-EXIT]", code);
+  });
+
+  // Don't wait for Next.js to stop; it runs forever in dev mode
+  res.json({
+    ok: true,
+    message: "Next.js dev server is starting on port 3001",
   });
 });
 
-app.listen(3000, () => console.log("Sandbox agent is running on port 3000"));
+app.listen(3000, () => {
+  console.log("Sandbox agent listening on port 3000");
+});

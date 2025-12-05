@@ -14,8 +14,14 @@ export function createServiceTemplate(envId: string) {
       },
       ports: [
         {
+          name : "agent",
           port: 3000,      // Service port
           targetPort: 3000 // Container port
+        },
+        {
+          name : "app",
+          port : 3001,
+          targetPort : 3001
         }
       ]
     }
