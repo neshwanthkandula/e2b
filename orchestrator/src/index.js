@@ -5,7 +5,7 @@ const sandboxRoutes = require("./routes/sandboxes");
 const app = express();
 app.use(bodyParser.json());
 
-app.use("/sandboxes", sandboxRoutes);
+app.use("/api/sandboxes", sandboxRoutes);
 
 const PORT = 4000;
 app.listen(PORT, ()=>{

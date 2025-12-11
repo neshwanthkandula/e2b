@@ -24,9 +24,10 @@ function buildService(name, id) {
 }
 
 async function createService(name, id) {
+  console.log(">>> Creating service...");
   const manifest = buildService(name, id);
+  console.log("✓ service created");
 
-  // 🔥 FIXED
   return coreV1.createNamespacedService({
     namespace: NAMESPACE,
     body: manifest
@@ -34,7 +35,6 @@ async function createService(name, id) {
 }
 
 async function deleteService(name) {
-  // 🔥 FIXED
   return coreV1.deleteNamespacedService({
     name,
     namespace: NAMESPACE
