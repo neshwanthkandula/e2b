@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orchestrator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orchestrator
+  template:
+    metadata:
+      labels:
+        app: orchestrator
+    spec:
+      serviceAccountName: orchestrator-sa
+      automountServiceAccountToken: true
+      containers:
+        - name: orchestrator
+          image: orchestrator:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4000

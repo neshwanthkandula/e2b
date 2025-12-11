@@ -20,7 +20,10 @@ function buildDeployment(name, id) {
               image: SANDBOX_IMAGE,
               imagePullPolicy: "IfNotPresent",
               workingDir: "/workspace",
-              ports: [{ containerPort: 3000, name: "http" }]
+              ports: [{ containerPort: 3000, name: "http" }],
+
+              stdin: true,
+              tty: true
             }
           ]
         }
@@ -30,9 +33,10 @@ function buildDeployment(name, id) {
 }
 
 async function createDeployment(name, id) {
+   console.log(">>> Creating Deployment...");
   const manifest = buildDeployment(name, id);
+  console.log("✓ Deployment created");
 
-  // 🔥 FIXED
   return appsV1.createNamespacedDeployment({
     namespace: NAMESPACE,
     body: manifest
@@ -41,7 +45,6 @@ async function createDeployment(name, id) {
 
 async function deleteDeployment(name) {
 
-  // 🔥 FIXED
   return appsV1.deleteNamespacedDeployment({
     name,
     namespace: NAMESPACE
