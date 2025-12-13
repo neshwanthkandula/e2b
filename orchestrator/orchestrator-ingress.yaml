@@ -5,7 +5,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: sandbox.local
+    - host: sandbox.local.gymmanagement.me
       http:
         paths:
           - path: /api

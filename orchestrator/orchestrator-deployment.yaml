@@ -16,7 +16,20 @@ spec:
       automountServiceAccountToken: true
       containers:
         - name: orchestrator
-          image: orchestrator:local
+          image: neshwanth/orchestrator:v2
           imagePullPolicy: IfNotPresent
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              value: "XXXXXX"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "XXXXXXx"
+            - name: AWS_REGION
+              value: "XXXXXX"
+            - name: SANDBOX_S3_BUCKET
+              value: "XXXXXX"
+            - name: K8S_NAMESPACE
+              value: "default"
+            - name : SANDBOX_IMAGE
+              value : "neshwanth/sandbox-react:local"
           ports:
             - containerPort: 4000

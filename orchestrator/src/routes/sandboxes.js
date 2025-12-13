@@ -8,18 +8,33 @@ const { execInPod } = require("../k8s/exec");
 const { writeFileToPod } = require("../k8s/files");
 const { getPodBySandboxId } = require("../k8s/utils");
 const { createSandboxIngress, deleteSandboxIngress } = require("../k8s/ingress");
-
+const { copyS3Base, writeS3Code } = require("../k8s/aws");
 
 router.post("/", async (req, res) => {
   try {
     const id = uuidv4().slice(0, 8);
     const name = `sandbox-${id}`;
+    const viteConfig = `
+      import { defineConfig } from "vite";
+      import react from "@vitejs/plugin-react";
+
+      export default defineConfig({
+        base: "/sandbox/${id}/",
+        plugins: [react()],
+        server: {
+          host: "0.0.0.0",
+          port: 3000,
+          allowedHosts: ["sandbox.local.gymmanagement.me"]
+        }
+      });
+      `;
 
     console.log("\n=== CREATE SANDBOX REQUEST ===");
     console.log("Sandbox ID:", id);
     console.log("Resource Name:", name);
 
-
+    await copyS3Base("base/react-template/", `sandboxes/${name}/workspace/`);
+    await writeS3Code(name, "vite.config.ts", viteConfig);
     await createDeployment(name, id);
     await createService(name, id);
     await createSandboxIngress(id, name);
@@ -80,6 +95,7 @@ router.post("/:id/files", async (req, res) => {
   }
 
   try {
+    await writeS3Code(`sandbox-${id}` , normalizedPath, content);
     const pod = await getPodBySandboxId(req.params.id);
     await writeFileToPod(pod, path, content);
     res.json({ ok: true });
