@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orchestrator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orchestrator
+  template:
+    metadata:
+      labels:
+        app: orchestrator
+    spec:
+      serviceAccountName: orchestrator-sa
+      automountServiceAccountToken: true
+      containers:
+        - name: orchestrator
+          image: orchestrator:local
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              value: "xxxxx"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "xxxxx"
+            - name: AWS_REGION
+              value: "xxxx"
+            - name: SANDBOX_S3_BUCKET
+              value: "xxxxx"
+            - name: K8S_NAMESPACE
+              value: "xxxxxx"
+          ports:
+            - containerPort: 4000
