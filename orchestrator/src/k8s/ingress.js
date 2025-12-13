@@ -15,7 +15,7 @@ function buildIngress(name, sandboxId, serviceName) {
       ingressClassName: "nginx",
       rules: [
         {
-          host: "sandbox.local",
+          host: "sandbox.local.gymmanagement.me",
           http: {
             paths: [
               {
